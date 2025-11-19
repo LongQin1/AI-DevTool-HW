@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Todo List</title>
+    <style>
+        :root {
+            --bg: #0f1020;
+            --bg-elevated: #17182b;
+            --bg-soft: #1f2136;
+            --purple: #8b5cf6;
+            --purple-soft: #a78bfa;
+            --purple-soft2: #4c1d95;
+            --text-main: #f9fafb;
+            --text-subtle: #9ca3af;
+            --border-subtle: #2d3048;
+            --danger: #f97373;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont,
+                         "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at top, #1f2937 0, #020617 55%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 32px 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 1200px;   /* 👉 放大整体宽度 */
+            margin: 0 auto;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .title-block h1 {
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .title-pill {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(167, 139, 250, 0.7);
+            background: radial-gradient(circle at top left, rgba(167, 139, 250, 0.3), transparent 55%);
+            color: var(--purple-soft);
+        }
+
+        .title-block p {
+            margin-top: 4px;
+            font-size: 13px;
+            color: var(--text-subtle);
+        }
+
+        .meta-right {
+            text-align: right;
+            font-size: 12px;
+            color: var(--text-subtle);
+        }
+
+        .meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 4px;
+        }
+
+        .dot-live {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);  /* 左右比例调大一点 */
+            gap: 18px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.98));
+            border-radius: 18px;
+            padding: 18px 18px 14px;
+            border: 1px solid rgba(55, 65, 81, 0.7);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .card-header h2 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .counter-chip {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(76, 29, 149, 0.6);
+            border: 1px solid rgba(167, 139, 250, 0.4);
+            color: var(--purple-soft);
+        }
+
+        .badges-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 6px;
+            margin-top: 2px;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-subtle);
+            background: rgba(12, 15, 32, 0.9);
+        }
+
+        .badge.primary {
+            border-color: rgba(167, 139, 250, 0.7);
+            color: var(--purple-soft);
+            background: radial-gradient(circle at top, rgba(129, 140, 248, 0.35), rgba(15, 23, 42, 0.95));
+        }
+
+        .todo-list {
+            list-style: none;
+            margin-top: 4px;
+        }
+
+        .todo-item {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1.5fr) auto;
+            column-gap: 10px;
+            row-gap: 2px;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(31, 41, 55, 0.7);
+        }
+
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            border: 2px solid rgba(129, 140, 248, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .status-icon.completed {
+            background: radial-gradient(circle at 30% 0, #a855f7, #4c1d95);
+            border-color: transparent;
+            color: #f9fafb;
+        }
+
+        .todo-main {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .todo-title {
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .todo-title.completed {
+            text-decoration: line-through;
+            color: #6b7280;
+        }
+
+        .todo-sub {
+            font-size: 11px;
+            color: var(--text-subtle);
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .todo-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--text-subtle);
+            white-space: nowrap;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(55, 65, 81, 0.8);
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .pill-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.9);
+        }
+
+        .pill.completed {
+            border-color: rgba(129, 140, 248, 0.9);
+            color: var(--purple-soft);
+        }
+
+        .pill.completed .pill-dot {
+            background: var(--purple-soft);
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-btn {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            background: rgba(15, 23, 42, 0.9);
+            color: #e5e7eb;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            border-color: var(--purple-soft);
+            color: var(--purple-soft);
+        }
+
+        .action-btn.primary {
+            background: radial-gradient(circle at 30% 0, #a855f7, #4c1d95);
+            border-color: transparent;
+            color: #f9fafb;
+            font-weight: 600;
+        }
+
+        .action-btn.danger {
+            border-color: rgba(248, 113, 113, 0.9);
+            color: #fecaca;
+        }
+
+        .action-btn.danger:hover {
+            background: rgba(248, 113, 113, 0.15);
+        }
+
+        .empty-state {
+            padding: 18px 4px 4px;
+            font-size: 13px;
+            color: var(--text-subtle);
+        }
+
+        .empty-state strong {
+            color: var(--purple-soft);
+        }
+
+        /* Side panel */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .metric {
+            background: radial-gradient(circle at top left, rgba(129, 140, 248, 0.25), rgba(15, 23, 42, 1));
+            border-radius: 12px;
+            padding: 10px 10px 8px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: var(--text-subtle);
+        }
+
+        .metric-value {
+            margin-top: 2px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .metric-hint {
+            margin-top: 3px;
+            font-size: 10px;
+            color: var(--text-subtle);
+        }
+
+        .helper {
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--text-subtle);
+            border-top: 1px dashed rgba(55, 65, 81, 0.9);
+            padding-top: 8px;
+        }
+
+        .helper a {
+            color: var(--purple-soft);
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(167, 139, 250, 0.8);
+        }
+
+        .helper a:hover {
+            color: #c4b5fd;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .card {
+                padding: 14px 14px 10px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .title-block h1 {
+                font-size: 22px;
+            }
+
+            .header-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .meta-right {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="header-row">
+        <div class="title-block">
+            <h1>
+                My Todo List
+                <span class="title-pill">Django · Purple UI</span>
+            </h1>
+            <p>A tiny homework app with a clean, modern purple theme.</p>
+        </div>
+        <div class="meta-right">
+            <div class="meta-tag">
+                <span class="dot-live"></span>
+                <span>Local dev server</span>
+            </div>
+            <div>Open <code>/admin</code> if you want raw data view.</div>
+        </div>
+    </header>
+
+    <!-- 顶部：新增 Todo 表单 -->
+    <section class="card" style="margin-bottom: 16px;">
+        <div class="card-header">
+            <h2>Add a new task</h2>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto; gap: 8px; align-items: center;">
+                <div>
+                    <input
+                        type="text"
+                        name="title"
+                        placeholder="Task title"
+                        required
+                        style="
+                            width: 100%;
+                            padding: 8px 10px;
+                            border-radius: 999px;
+                            border: 1px solid rgba(55,65,81,0.9);
+                            background: rgba(15,23,42,0.9);
+                            color: #f9fafb;
+                            font-size: 13px;
+                        "
+                    />
+                </div>
+                <div>
+                    <input
+                        type="text"
+                        name="description"
+                        placeholder="Optional description"
+                        style="
+                            width: 100%;
+                            padding: 8px 10px;
+                            border-radius: 999px;
+                            border: 1px solid rgba(55,65,81,0.9);
+                            background: rgba(15,23,42,0.9);
+                            color: #e5e7eb;
+                            font-size: 13px;
+                        "
+                    />
+                </div>
+                <div>
+                    <button type="submit" class="action-btn primary">
+                        + Add
+                    </button>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <main class="layout">
+        <!-- 左侧：todo 列表 -->
+        <section class="card">
+            <div class="card-header">
+                <h2>Tasks</h2>
+                <div class="counter-chip">
+                    {% with total=todos|length %}
+                        {{ total }} item{{ total|pluralize }}
+                    {% endwith %}
+                </div>
+            </div>
+
+            <div class="badges-row">
+                <span class="badge primary">Overview</span>
+                <span class="badge">Status at a glance</span>
+                <span class="badge">Created date · Description</span>
+            </div>
+
+            <ul class="todo-list">
+                {% for todo in todos %}
+                    <li class="todo-item">
+                        <div class="status-icon {% if todo.is_completed %}completed{% endif %}">
+                            {% if todo.is_completed %}
+                                ✓
+                            {% else %}
+                                •
+                            {% endif %}
+                        </div>
+
+                        <div class="todo-main">
+                            <div class="todo-title {% if todo.is_completed %}completed{% endif %}">
+                                {{ todo.title }}
+                            </div>
+                            <div class="todo-sub">
+                                {{ todo.created_at|date:"Y-m-d H:i" }}
+                                {% if todo.description %}
+                                    · {{ todo.description|truncatechars:50 }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="todo-meta">
+                            <span class="pill {% if todo.is_completed %}completed{% endif %}">
+                                <span class="pill-dot"></span>
+                                {% if todo.is_completed %}
+                                    Done
+                                {% else %}
+                                    In progress
+                                {% endif %}
+                            </span>
+
+                            <div class="todo-actions">
+                                <!-- 完成 / 取消完成 -->
+                                <form method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="toggle">
+                                    <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                    <button type="submit" class="action-btn">
+                                        {% if todo.is_completed %}Undo{% else %}Done{% endif %}
+                                    </button>
+                                </form>
+
+                                <!-- 删除 -->
+                                <form method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                    <button type="submit" class="action-btn danger">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </li>
+                {% empty %}
+                    <li class="empty-state">
+                        <strong>No todos yet.</strong><br>
+                        Add one above to get started.
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <!-- 右侧：小 dashboard -->
+        <aside class="card">
+            <div class="card-header">
+                <h2>Mini dashboard</h2>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric">
+                    <div class="metric-label">Completed</div>
+                    <div class="metric-value">
+                        ✓
+                    </div>
+                    <div class="metric-hint">Mark tasks as done with the Done button.</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Latest task</div>
+                    <div class="metric-value">
+                        {% if todos %}
+                            {{ todos.0.created_at|date:"M d" }}
+                        {% else %}
+                            –
+                        {% endif %}
+                    </div>
+                    <div class="metric-hint">Sorted by newest first.</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Status</div>
+                    <div class="metric-value">
+                        {% if todos %}
+                            {% if todos.0.is_completed %}
+                                Calm
+                            {% else %}
+                                Busy
+                            {% endif %}
+                        {% else %}
+                            Idle
+                        {% endif %}
+                    </div>
+                    <div class="metric-hint">Just for fun — not real logic.</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Theme</div>
+                    <div class="metric-value">Purple</div>
+                    <div class="metric-hint">Optimised for clear contrast.</div>
+                </div>
+            </div>
+
+            <div class="helper">
+                This is a small full-flow todo app for your homework.<br>
+                You can create, complete/undo, and delete tasks directly here.
+            </div>
+        </aside>
+    </main>
+</div>
+</body>
+</html>
