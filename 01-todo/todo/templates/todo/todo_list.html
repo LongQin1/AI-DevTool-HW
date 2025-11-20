@@ -440,9 +440,26 @@
                             background: rgba(15,23,42,0.9);
                             color: #e5e7eb;
                             font-size: 13px;
+                            margin-bottom: 6px;
+                        "
+                    />
+
+                    <input
+                        type="date"
+                        name="due_date"
+                        placeholder="Due date"
+                        style="
+                            width: 100%;
+                            padding: 8px 10px;
+                            border-radius: 999px;
+                            border: 1px solid rgba(55,65,81,0.9);
+                            background: rgba(15,23,42,0.9);
+                            color: #e5e7eb;
+                            font-size: 13px;
                         "
                     />
                 </div>
+
                 <div>
                     <button type="submit" class="action-btn primary">
                         + Add
@@ -487,6 +504,9 @@
                             </div>
                             <div class="todo-sub">
                                 {{ todo.created_at|date:"Y-m-d H:i" }}
+                                {% if todo.due_date %}
+                                    · Due: {{ todo.due_date|date:"Y-m-d" }}
+                                {% endif %}
                                 {% if todo.description %}
                                     · {{ todo.description|truncatechars:50 }}
                                 {% endif %}
@@ -503,27 +523,28 @@
                                 {% endif %}
                             </span>
 
-                            <div class="todo-actions">
-                                <!-- 完成 / 取消完成 -->
-                                <form method="post" style="display:inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="toggle">
-                                    <input type="hidden" name="todo_id" value="{{ todo.id }}">
-                                    <button type="submit" class="action-btn">
-                                        {% if todo.is_completed %}Undo{% else %}Done{% endif %}
-                                    </button>
-                                </form>
+                        <div class="todo-actions">
+                            <a href="{% url 'edit_todo' todo.id %}" class="action-btn">
+                                Edit
+                            </a>
 
-                                <!-- 删除 -->
-                                <form method="post" style="display:inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="delete">
-                                    <input type="hidden" name="todo_id" value="{{ todo.id }}">
-                                    <button type="submit" class="action-btn danger">
-                                        Delete
-                                    </button>
-                                </form>
-                            </div>
+                            <form method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="toggle">
+                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                <button type="submit" class="action-btn">
+                                    {% if todo.is_completed %}Undo{% else %}Done{% endif %}
+                                </button>
+                            </form>
+
+                            <form method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                <button type="submit" class="action-btn danger">
+                                    Delete
+                                </button>
+                            </form>
                         </div>
                     </li>
                 {% empty %}
@@ -535,7 +556,7 @@
             </ul>
         </section>
 
-        <!-- 右侧：小 dashboard -->
+        
         <aside class="card">
             <div class="card-header">
                 <h2>Mini dashboard</h2>
